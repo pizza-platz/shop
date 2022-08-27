@@ -40,7 +40,9 @@ jobs:
       - name: 🏷 Tag
         id: tag
         run: |
-          echo "::set-output name=tag::`git describe --tags --always`"
+          git_describe=`git describe --tags --always`
+          branch="${GITHUB_REF#refs/heads/}"
+          echo "::set-output name=tag::${git_describe}-${branch}"
 
       - name: 🔑 Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
