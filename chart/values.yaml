@@ -39,12 +39,8 @@ ingress:
   tls: []
 
 resources:
-  limits:
-    cpu: 50m
-    memory: 16Mi
   requests:
-    cpu: 50m
-    memory: 64Mi
+    memory: 16Mi
 
 autoscaling:
   enabled: false
