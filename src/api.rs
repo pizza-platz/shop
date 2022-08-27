@@ -1,5 +1,5 @@
 use actix_web::{web, HttpResponse, Responder};
-use platz_sdk::deployment_status::{PlatzStatus, Status, StatusColor};
+use platz_sdk::{PlatzStatus, Status, StatusColor};
 use serde::Serialize;
 
 pub fn configure(cfg: &mut web::ServiceConfig) {
