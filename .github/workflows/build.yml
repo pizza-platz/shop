@@ -1,0 +1,105 @@
+name: 🏗 Build
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: 🏗 Build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: 🛎 Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 🦀 Install Rust
+        id: rust-toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          default: true
+          components: clippy
+
+      - name: ⎈ Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: 🔪 Install yq
+        uses: mikefarah/yq@v4.27.2
+
+      - name: 🏷 Repository name
+        id: repo-name
+        uses: MariachiBear/get-repo-name-action@v1.1.0
+
+      - name: 🏷 Tag
+        id: tag
+        run: |
+          echo "::set-output name=tag::`git describe --tags --always`"
+
+      - name: 🔑 Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.CI_IAM_ROLE_ARN }}
+          aws-region: ${{ secrets.CI_AWS_REGION }}
+
+      - name: 🔑 Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: 🛠 Prepare chart
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPO_NAME: ${{ steps.repo-name.outputs.repository-name }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          yq -i ".version = \"${IMAGE_TAG}\"" chart/Chart.yaml
+          yq -i ".appVersion = \"${IMAGE_TAG}\"" chart/Chart.yaml
+          yq -i ".image.repository = \"${REGISTRY}/${REPO_NAME}\"" chart/values.yaml
+          yq -i ".image.tag = \"${IMAGE_TAG}\"" chart/values.yaml
+
+      - name: 🧹 Lint chart
+        run: helm lint chart
+
+      - name: 🪣 Configure cache
+        uses: actions/cache@v3
+        with:
+          key: ${{ steps.rust-toolchain.outputs.rustc }}-${{ hashFiles('Cargo.lock') }}
+          restore-keys: |
+            ${{ steps.rust-toolchain.outputs.rustc }}
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+
+      - name: 🧹 Cargo Lint
+        run: cargo clippy -- -D warnings
+
+      - name: 🧪 Cargo Test
+        run: cargo test --release
+
+      - name: 🏗 Cargo Build
+        run: cargo build --release
+
+      - name: 🐳 Build and push Docker image
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPO_NAME: ${{ steps.repo-name.outputs.repository-name }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          docker build -t "${REGISTRY}/${REPO_NAME}:${IMAGE_TAG}" .
+          docker push "${REGISTRY}/${REPO_NAME}:${IMAGE_TAG}"
+
+      - name: 🚀 Publish chart
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPO_NAME: ${{ steps.repo-name.outputs.repository-name }}-chart
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          helm package chart
+          helm push "${REPO_NAME}-${IMAGE_TAG}.tgz" "oci://${REGISTRY}"
