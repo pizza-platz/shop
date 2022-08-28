@@ -1,0 +1,6 @@
+apiVersion: platz.io/v1beta2
+kind: Features
+spec:
+  display:
+    icon:
+      font_awesome: shop
