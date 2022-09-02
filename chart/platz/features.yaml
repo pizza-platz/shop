@@ -4,3 +4,5 @@ spec:
   display:
     icon:
       font_awesome: shop
+  ingress:
+    enabled: true
