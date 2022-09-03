@@ -1,0 +1,14 @@
+apiVersion: blah
+kind: ValuesUi
+inputs:
+  - id: opening_times
+    type: DaysAndHour
+    label: Opening Times
+    required: true
+  - id: closing_times
+    type: DaysAndHour
+    label: Closing Times
+    required: true
+outputs:
+  values: {}
+  secrets: {}
