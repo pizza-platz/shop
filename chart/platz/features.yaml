@@ -6,3 +6,7 @@ spec:
       font_awesome: shop
   ingress:
     enabled: true
+  status:
+    endpoint: standard_ingress
+    path: /status
+    refresh_interval_secs: 15

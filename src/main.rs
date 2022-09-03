@@ -1,7 +1,9 @@
 mod api;
+mod status;
 
-use actix_web::{App, HttpServer};
 use anyhow::Result;
+use status::ShopStatus;
+use tokio::select;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -9,8 +11,14 @@ async fn main() -> Result<()> {
         .filter_level(log::LevelFilter::Debug)
         .init();
 
-    Ok(HttpServer::new(|| App::new().configure(api::configure))
-        .bind(("0.0.0.0", 8080))?
-        .run()
-        .await?)
+    let shop_status = ShopStatus::new();
+
+    select! {
+        result = api::start(shop_status.clone()) => {
+            Ok(result?)
+        }
+        result = shop_status.start() => {
+            Ok(result?)
+        }
+    }
 }

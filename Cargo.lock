@@ -1316,14 +1316,17 @@ checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
 
 [[package]]
 name = "pizza-platz-shop"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "actix",
  "actix-web",
  "anyhow",
+ "chrono",
  "env_logger",
  "log",
  "platz-sdk",
+ "rand",
+ "rust_decimal",
  "serde",
  "tokio",
 ]
@@ -1510,6 +1513,7 @@ checksum = "ee9164faf726e4f3ece4978b25ca877ddc6802fa77f38cdccb32c7f805ecd70c"
 dependencies = [
  "arrayvec",
  "num-traits",
+ "rand",
  "serde",
 ]
 
