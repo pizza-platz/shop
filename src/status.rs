@@ -40,7 +40,7 @@ impl ShopStatus {
                     inner.is_open = true;
                     inner.revenue = Decimal::ZERO;
                 }
-                if rng.gen::<f64>() < 0.1 {
+                if rng.gen::<f64>() < 0.75 {
                     info!("💰 Customer walked in");
                     let price = rng.gen_range(Decimal::ZERO..Decimal::ONE_HUNDRED);
                     let price = price.round_dp(2);
