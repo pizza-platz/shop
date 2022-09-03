@@ -1,11 +1,14 @@
 use crate::status::ShopStatus;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{middleware::Logger, web, App, HttpResponse, HttpServer, Responder};
 use platz_sdk::{Metric, PlatzStatus, StatusColor};
 use serde::Serialize;
 
 pub async fn start(shop_status: ShopStatus) -> Result<(), std::io::Error> {
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::new(
+                "%a %t \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %T",
+            ))
             .app_data(web::Data::new(shop_status.clone()))
             .configure(configure)
     })
@@ -20,7 +23,7 @@ pub fn configure(cfg: &mut web::ServiceConfig) {
 
 #[derive(Clone, Serialize)]
 enum OpenStatus {
-    Opened,
+    Open,
     Closed,
 }
 
@@ -28,7 +31,7 @@ async fn status(shop_status: web::Data<ShopStatus>) -> impl Responder {
     let platz_status = PlatzStatus {
         status: if shop_status.is_open().await {
             platz_sdk::Status {
-                name: OpenStatus::Opened,
+                name: OpenStatus::Open,
                 color: StatusColor::Success,
             }
         } else {
