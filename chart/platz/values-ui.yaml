@@ -1,4 +1,4 @@
-apiVersion: platz.io/v1beta2
+apiVersion: platz.io/v1beta1
 kind: ValuesUi
 inputs:
   - id: opening_times
