@@ -10,5 +10,5 @@ inputs:
     label: Closing Times
     required: true
 outputs:
-  values: {}
+  values: []
   secrets: {}
